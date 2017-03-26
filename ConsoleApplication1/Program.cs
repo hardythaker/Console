@@ -64,8 +64,10 @@ namespace ConsoleApplication1
             }
             if ((result[0].Type == "Sleep" || result[0].Type == "Off"))
             {
-                result.Insert(0, new OnOffEntry { EntryDate = result[0].EntryDate, TimeGenerated = result[0].EntryDate, Type = "On" });
+                result.Insert(0, new OnOffEntry { EntryDate = result[0].EntryDate, TimeGenerated = result[0].EntryDate.AddMilliseconds(1), Type = "On" });
             }
+
+
 
             //testing
             List<OnOffEntry> tempresult = new List<OnOffEntry>(result);
@@ -74,53 +76,59 @@ namespace ConsoleApplication1
             DateTime i = firstDate;
             while (i < DateTime.Now.Date)
             {
+                Console.WriteLine("Entry Date = " + i.ToShortDateString());
                 var a = tempresult.Where(x => x.EntryDate == i);
-                if (a.First().Type == "Off")
+                var yesterday_result = tempresult.Where(x => x.EntryDate == i.AddDays(-1)); ;
+                if (a.Count() > 0)
                 {
-                    result.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i, Type = "On" });
+                    if (a.First().Type == "Off")
+                    {
+                        result.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i.AddMinutes(1), Type = "On" });
+                    }
+                    if (a.Last().Type == "On")
+                    {
+                        result.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i.AddDays(1).AddMilliseconds(-1), Type = "Off" });
+                    }
+                    //foreach (var items in a.OrderBy(x => x.EntryDate))
+                    //{
+                    //    Console.WriteLine(items.EntryDate.ToShortDateString() + "\t" + items.TimeGenerated.ToShortTimeString() + "\t" + items.Type);
+                    //}
                 }
-                if (a.Last().Type == "On")
-                {
-                    result.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i.AddSeconds(-1), Type = "Off" });
+                else {
+                    if (yesterday_result.LastOrDefault().Type == "On")
+                    {
+                        tempresult.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i.AddMilliseconds(1), Type = "On" });
+                        result.Add(new OnOffEntry { EntryDate = i, TimeGenerated = i.AddMilliseconds(1), Type = "On" });
+                    }
+                    else {
+                        result.Add(new OnOffEntry { EntryDate = i, Type="Off"});
+                    }
+                    
                 }
-                foreach (var items in a)
-                {
-                    Console.WriteLine(items.EntryDate + "\t" + items.TimeGenerated + "\t" + items.Type);
-                }
-                //days++;
-                i.AddDays(days++);
-                Console.WriteLine("-------------------------End OF Day----------------------");
+                i = i.AddDays(1);
+                days++;
+                //Console.WriteLine("-------------------------End OF Day----------------------");
             }
-            //if( == )
-            //var nextDate = result[i].EntryDate;
-            //    int days = 1;
-            //    if (i == 1 && (tempresult[0].Type == "Off" || tempresult[0].Type == "Sleep"))
-            //    {
-            //        result.Insert(0, new OnOffEntry { EntryDate = tempresult[0].EntryDate, TimeGenerated = tempresult[0].EntryDate, Type = "On" });
-            //    }
-            //    while (firstDate.CompareTo(nextDate) == -1)
-            //    { 
+           
+            List<OnOffEntry> tempresultnew = new List<OnOffEntry>(result);
+            var date_tmpnew = tempresultnew[0].EntryDate;
+            for (int z = 0; z < tempresultnew.Count(); z++)
+            {
+                var each_day_result = tempresultnew.Where(x => x.EntryDate == date_tmpnew);
+                if (each_day_result.Count() == 1 )
+                {
+                    result.Add(new OnOffEntry { EntryDate = date_tmpnew, TimeGenerated = date_tmpnew.AddDays(1).AddMilliseconds(-1), Type = "Off" });
+                }
+                date_tmpnew = date_tmpnew.AddDays(1);
+            }
 
-            //    }
+           // Console.WriteLine("*******************End OF Tmpresult*********************");
 
-            //    //Console.WriteLine(tempresult.EntryDate + " | " + tempresult.TimeGenerated + " | " + tempresult.Type);
-            //}
-            //List<OnOffEntry> tempresult = new List<OnOffEntry>();
-            //tempresult = result;
-            //var firstDate = tempresult[0].EntryDate;
-            //for (int i = 1; i < tempresult.Count; i++)
-            //{
-            //    var nextDate = tempresult[i].EntryDate;
-            //    int days = 1;
-            //    while (firstDate.AddDays(days).CompareTo(nextDate) == -1)
-            //    {
-            //        result.Add(new OnOffEntry { EntryDate = firstDate.AddDays(days), Type = null });
-            //        days++;
-            //    }
-            //    firstDate = nextDate;
-            //}
-
-
+            foreach (var tempr in result.OrderBy(x => x.EntryDate))
+            {
+                Console.WriteLine(tempr.EntryDate + "\t" + tempr.TimeGenerated + "\t" + tempr.Type);
+            }
+            
             for (int count = 0; count < result.Count - 1; count++)
             {
                 int nextCount = count + 1;
@@ -150,26 +158,9 @@ namespace ConsoleApplication1
                 EntryStopTime = DateTime.Now,
                 stopAction = "On"
             });
-            //Dictionary<DateTime, List<TimeBlocks>> PcOnOffTime = new Dictionary<DateTime, List<TimeBlocks>>(PcOnOff);
-            //var firstKey = PcOnOffTime.ElementAt(0).Key;
-            //for (int i = 1; i < PcOnOffTime.Count; i++)
-            //{
-            //    var nextKey = PcOnOffTime.ElementAt(i).Key;
-            //    int days = 1;
-            //    while (firstKey.AddDays(days).CompareTo(nextKey) == -1)
-            //    {
-            //        List<TimeBlocks> EachTimeBlocks = new List<TimeBlocks>();
-            //        PcOnOff.Add(firstKey.AddDays(days), EachTimeBlocks);
-            //        days++;
-            //        //if (PcOnOffTime.ElementAt(i).Value.Last(). == "On" || PcOnOffTime.ElementAt(i).Value.Last() == "Awake")
-            //        //{
 
-            //        //}
-            //    }
-            //    firstKey = nextKey;
-            //}
 
-            foreach (var kvp in PcOnOff.OrderBy(x => x.Key))
+           foreach (var kvp in PcOnOff.OrderBy(x => x.Key))
             {
                 Console.WriteLine(kvp.Key);
                 foreach (var kvpv in kvp.Value)
